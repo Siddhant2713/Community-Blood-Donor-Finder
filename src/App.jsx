@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react'
+import Header from './components/Header'
+import Spinner from './components/Spinner'
+import Filters from './components/Filters'
+import DonorList from './components/DonorList'
 
 const bloodGroups = ["A+", "B+", "O+", "O−", "AB+", "A−"]
 
@@ -15,6 +19,10 @@ function transformUsers(users) {
 function App() {
   const [donors, setDonors] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedBloodGroup, setSelectedBloodGroup] = useState("All")
+  const [searchCity, setSearchCity] = useState("")
+  const [sortAvailableFirst, setSortAvailableFirst] = useState(false)
+  const [requestedDonors, setRequestedDonors] = useState({})
 
   useEffect(() => {
     setLoading(true)
@@ -32,36 +40,51 @@ function App() {
       })
   }, [])
 
-  if (loading) {
-    return <p>Loading donors...</p>
-  }
+  const filteredDonors = donors
+    .filter(donor => {
+      if (selectedBloodGroup === "All") return true;
+      return donor.bloodGroup === selectedBloodGroup;
+    })
+    .filter(donor =>
+      donor.city.toLowerCase().includes(searchCity.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (!sortAvailableFirst) return 0;
+      return b.available - a.available;
+    })
 
-  if (!loading && donors.length === 0) {
-    return <p>No donors found.</p>
-  }
-
-  const availableCount = donors.filter(d => d.available).length;
+  const availableCount = filteredDonors.filter(d => d.available).length;
 
   return (
-    <div>
-      <header>
-        <h1>Community Blood Donor Finder</h1>
-      </header>
+    <div className="app-container">
+      <Header />
 
-      <div className="info-section">
-        <p>Available Donors: {availableCount}</p>
-      </div>
+      <main className="main-content">
+        <Filters
+          selectedBloodGroup={selectedBloodGroup}
+          setSelectedBloodGroup={setSelectedBloodGroup}
+          searchCity={searchCity}
+          setSearchCity={setSearchCity}
+          sortAvailableFirst={sortAvailableFirst}
+          setSortAvailableFirst={setSortAvailableFirst}
+        />
 
-      <div className="list-section">
-        {donors.map(donor => (
-          <div key={donor.id} className="donor-card">
-            <h3>{donor.name}</h3>
-            <p>Blood Group: {donor.bloodGroup}</p>
-            <p>City: {donor.city}</p>
-            <p>{donor.available ? "Available" : "Not Available"}</p>
+        {!loading && (
+          <div className="meta-info">
+            <p className="available-count">Available Donors: {availableCount}</p>
           </div>
-        ))}
-      </div>
+        )}
+
+        {loading ? (
+          <Spinner />
+        ) : (
+          <DonorList
+            filteredDonors={filteredDonors}
+            requestedDonors={requestedDonors}
+            setRequestedDonors={setRequestedDonors}
+          />
+        )}
+      </main>
     </div>
   )
 }
