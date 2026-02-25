@@ -26,17 +26,6 @@ function App() {
   // ── Theme ─────────────────────────────────────────────────
   const [isDark, setIsDark] = useState(false)
 
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const apply = (dark) => {
-      setIsDark(dark)
-      document.documentElement.classList.toggle('dark', dark)
-    }
-    apply(mq.matches)
-    mq.addEventListener('change', e => apply(e.matches))
-    return () => mq.removeEventListener('change', e => apply(e.matches))
-  }, [])
-
   const toggleTheme = () => {
     const next = !isDark
     setIsDark(next)
