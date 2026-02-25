@@ -1,82 +1,78 @@
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'
 
-/**
- * Filters Component
- * Renders the top-level inputs (Dropdown, Search Input, and Toggles).
- * It receives Hooks directly from App.jsx so data remains a "Single Source of Truth".
- * 
- * @param {string} selectedBloodGroup - The exact string (e.g., "A+", "All") active in Dropdown.
- * @param {Function} setSelectedBloodGroup - Setter hook for Blood Group logic.
- * @param {string} searchCity - Active input text querying the City.
- * @param {Function} setSearchCity - Setter hook for City String inputs.
- * @param {boolean} sortAvailableFirst - Hook controlling Array Ordering behaviors natively. 
- * @param {Function} setSortAvailableFirst - Setter hook mapping to Toggle Sorting behavior.
- */
+const BLOOD_GROUPS = ["All", "A+", "A−", "B+", "B−", "O+", "O−", "AB+", "AB−"]
+
+/*
+  IMPORTANT: "O−" and "A−" use Unicode minus U+2212, not a hyphen.
+  Copy these exact strings. Do not retype them.
+  They must match the bloodGroups array in App.jsx exactly.
+*/
+
 export default function Filters({
     selectedBloodGroup,
     setSelectedBloodGroup,
     searchCity,
     setSearchCity,
     sortAvailableFirst,
-    setSortAvailableFirst
+    setSortAvailableFirst,
+    filteredCount,
+    totalCount,
+    hasActiveFilters,
+    clearFilters,
 }) {
     return (
-        <div className="filters-section">
-            <div className="filter-controls">
-                {/* 1. Select Object. 
-                    `value` tracks exactly the React state natively.
-                    `onChange` maps exact `.target.value` DOM strings up to App.jsx flawlessly. */}
-                <select
-                    value={selectedBloodGroup}
-                    onChange={(e) => setSelectedBloodGroup(e.target.value)}
-                    className="filter-select"
-                >
-                    <option value="All">All Blood Groups</option>
-                    <option value="A+">A+</option>
-                    <option value="B+">B+</option>
-                    <option value="O+">O+</option>
-                    <option value="O−">O−</option>
-                    <option value="AB+">AB+</option>
-                    <option value="A−">A−</option>
-                </select>
+        <>
+            {/* ── Filter Bar ─────────────────────────────────── */}
+            <div className="filter-bar">
 
+                {/* Blood group pills */}
+                <div className="bg-pills">
+                    {BLOOD_GROUPS.map(group => (
+                        <button
+                            key={group}
+                            className={`bg-pill ${selectedBloodGroup === group ? 'active' : ''}`}
+                            onClick={() => setSelectedBloodGroup(group)}
+                        >
+                            {group === "All" ? "All" : group}
+                        </button>
+                    ))}
+                </div>
+
+                {/* City search */}
                 <input
                     type="text"
+                    className="city-search"
                     placeholder="Search by city..."
-                    value={searchCity} // Controlled string values ensuring inputs mirror App.jsx
-                    onChange={(e) => setSearchCity(e.target.value)}
-                    className="filter-input"
+                    value={searchCity}
+                    onChange={e => setSearchCity(e.target.value)}
+                    aria-label="Search donors by city"
                 />
 
-                {/* 3. Sort Array Order Toggle 
-                    Fires a specific Callback hook pulling the `prev` (prior) boolean snapshot from React, 
-                    and explicitly flipping it `(!prev)`. */}
+                {/* Available only toggle */}
                 <button
+                    className={`avail-toggle ${sortAvailableFirst ? 'active' : ''}`}
                     onClick={() => setSortAvailableFirst(prev => !prev)}
-                    className={`toggle-button ${sortAvailableFirst ? 'active' : ''}`}
+                    aria-pressed={sortAvailableFirst}
                 >
-                    {sortAvailableFirst ? "Showing Available First" : "Sort Available First"}
+                    Available only
                 </button>
+
             </div>
 
-            <div className="clear-filters">
-                {/* 4. Reset Conditional Wrapper
-                    ONLY displays if at least ONE Hook is out of its "Default" initialization array. */}
-                {(selectedBloodGroup !== "All" || searchCity !== "" || sortAvailableFirst) && (
-                    <button
-                        className="clear-button"
-                        onClick={() => {
-                            setSelectedBloodGroup("All");
-                            setSearchCity("");
-                            setSortAvailableFirst(false);
-                        }}
-                    >
-                        Clear Filters ✕
+            {/* ── Meta Row ───────────────────────────────────── */}
+            <div className="meta-row">
+                <span className="donor-count">
+                    {filteredCount} of {totalCount} donors
+                </span>
+
+                {hasActiveFilters && (
+                    <button className="clear-btn" onClick={clearFilters}>
+                        Clear filters
                     </button>
                 )}
             </div>
-        </div>
-    );
+        </>
+    )
 }
 
 Filters.propTypes = {
@@ -85,5 +81,9 @@ Filters.propTypes = {
     searchCity: PropTypes.string.isRequired,
     setSearchCity: PropTypes.func.isRequired,
     sortAvailableFirst: PropTypes.bool.isRequired,
-    setSortAvailableFirst: PropTypes.func.isRequired
-};
+    setSortAvailableFirst: PropTypes.func.isRequired,
+    filteredCount: PropTypes.number.isRequired,
+    totalCount: PropTypes.number.isRequired,
+    hasActiveFilters: PropTypes.bool.isRequired,
+    clearFilters: PropTypes.func.isRequired,
+}
