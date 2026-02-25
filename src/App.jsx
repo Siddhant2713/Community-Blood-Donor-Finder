@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Filters from './components/Filters'
 import DonorList from './components/DonorList'
 
-const bloodGroups = ["A+", "B+", "O+", "O−", "AB+", "A−"]
+const bloodGroups = ["A+", "A−", "B+", "B−", "O+", "O−", "AB+", "AB−"]
 
 function transformUsers(users) {
   return users.map(user => ({
